@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grading System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f9fafb;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: 30px auto;
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+        h3 {
+            color: #444;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        input {
+            margin: 6px;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            background: #f0f7ff;
+        }
+        button {
+            margin: 6px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-add { background: #74c0fc; color: white; }
+        .btn-update { background: #ffc078; color: white; }
+        .btn-delete { background: #ff6b6b; color: white; }
+        .btn-view { background: #69db7c; color: white; }
+        .btn-add:hover { background: #4dabf7; }
+        .btn-update:hover { background: #ffa94d; }
+        .btn-delete:hover { background: #fa5252; }
+        .btn-view:hover { background: #51cf66; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background: #d0ebff;
+            color: #212529;
+        }
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        tr:hover {
+            background: #f1f3f5;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>India International School - Grading System</h1>
+
+    <div class="container">
+        <h3>Add/Update Grades</h3>
+        <input type="text" id="roll" placeholder="Roll No">
+        <input type="text" id="name" placeholder="Student Name"><br>
+        <input type="number" id="sub1" placeholder="DSP">
+        <input type="number" id="sub2" placeholder="CSD">
+        <input type="number" id="sub3" placeholder="PLC">
+        <input type="number" id="sub4" placeholder="MDM">
+        <input type="number" id="sub5" placeholder="DSA/AP">
+        <input type="number" id="sub6" placeholder="OE"><br>
+        <button class="btn-add" onclick="addGrades()">Add Grades</button>
+        <button class="btn-update" onclick="updateGrades()">Update Grades</button>
+    </div>
+
+    <div class="container">
+        <h3>Delete Record</h3>
+        <input type="text" id="deleteRoll" placeholder="Roll Number">
+        <button class="btn-delete" onclick="deleteRecord()">Delete</button>
+    </div>
+
+    <div class="container">
+        <h3>View Record</h3>
+        <input type="text" id="viewRoll" placeholder="Roll Number">
+        <button class="btn-view" onclick="viewRecord()">View</button>
+        <div id="result"></div>
+    </div>
+
+    <div class="container">
+        <h3>All Records</h3>
+        <button class="btn-view" onclick="viewAll()">View All Records</button>
+        <div id="allRecords"></div>
+    </div>
+
+<script>
+    async function addGrades() {
+        const roll = document.getElementById("roll").value;
+        const name = document.getElementById("name").value;
+        const subjects = [
+            parseInt(document.getElementById("sub1").value || 0),
+            parseInt(document.getElementById("sub2").value || 0),
+            parseInt(document.getElementById("sub3").value || 0),
+            parseInt(document.getElementById("sub4").value || 0),
+            parseInt(document.getElementById("sub5").value || 0),
+            parseInt(document.getElementById("sub6").value || 0),
+        ];
+
+        const res = await fetch("/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ roll, name, subjects })
+        });
+
+        const data = await res.json();
+        alert(data.message);
+        viewAll();
+    }
+
+    async function updateGrades() {
+        const roll = document.getElementById("roll").value;
+        const name = document.getElementById("name").value;
+        const subjects = [
+            parseInt(document.getElementById("sub1").value || 0),
+            parseInt(document.getElementById("sub2").value || 0),
+            parseInt(document.getElementById("sub3").value || 0),
+            parseInt(document.getElementById("sub4").value || 0),
+            parseInt(document.getElementById("sub5").value || 0),
+            parseInt(document.getElementById("sub6").value || 0),
+        ];
+
+        const res = await fetch("/update", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ roll, name, subjects })
+        });
+
+        const data = await res.json();
+        alert(data.message);
+        viewAll();
+    }
+
+    async function deleteRecord(rollNo = null) {
+        const roll = rollNo || document.getElementById("deleteRoll").value;
+
+        const res = await fetch("/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ roll })
+        });
+
+        const data = await res.json();
+        alert(data.message);
+        viewAll();
+    }
+
+    async function viewRecord() {
+        const roll = document.getElementById("viewRoll").value;
+        const res = await fetch(`/view/${roll}`);
+        const data = await res.json();
+
+        const resultDiv = document.getElementById("result");
+        resultDiv.innerHTML = "";
+
+        if (!data.record) {
+            resultDiv.innerHTML = "<p>No record found.</p>";
+            return;
+        }
+
+        const rec = data.record;
+        let table = `
+        <table>
+            <tr>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th>Subject 1</th>
+                <th>Subject 2</th>
+                <th>Subject 3</th>
+                <th>Subject 4</th>
+                <th>Subject 5</th>
+                 <th>Subject 6</th>
+                <th>Total</th>
+            </tr>
+            <tr>
+                <td>${roll}</td>
+                <td>${rec.name}</td>
+                <td>${rec.subjects[0]}</td>
+                <td>${rec.subjects[1]}</td>
+                <td>${rec.subjects[2]}</td>
+                <td>${rec.subjects[3]}</td>
+                <td>${rec.subjects[4]}</td>
+                <td>${rec.subjects[5]}</td>
+                <td><b>${rec.total}</b></td>
+            </tr>
+        </table>`;
+        
+        resultDiv.innerHTML = table;
+    }
+
+    async function viewAll() {
+        const res = await fetch("/view_all");
+        const data = await res.json();
+        const records = data.records;
+        const resultDiv = document.getElementById("allRecords");
+        resultDiv.innerHTML = "";
+
+        if (Object.keys(records).length === 0) {
+            resultDiv.innerHTML = "<p>No records found.</p>";
+            return;
+        }
+
+        let table = `
+        <table>
+            <tr>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th>Subject 1</th>
+                <th>Subject 2</th>
+                <th>Subject 3</th>
+                <th>Subject 4</th>
+                <th>Subject 5</th>
+                <th>Subject 6</th>
+                <th>Total</th>
+                <th>Actions</th>
+            </tr>`;
+        
+        for (const roll in records) {
+            const rec = records[roll];
+            table += `
+            <tr>
+                <td>${roll}</td>
+                <td>${rec.name}</td>
+                <td>${rec.subjects[0]}</td>
+                <td>${rec.subjects[1]}</td>
+                <td>${rec.subjects[2]}</td>
+                <td>${rec.subjects[3]}</td>
+                <td>${rec.subjects[4]}</td>
+                 <td>${rec.subjects[5]}</td>
+                <td><b>${rec.total}</b></td>
+                <td>
+                    <button class="btn-update" onclick="fillForm('${roll}', '${rec.name}', ${rec.subjects})">Update</button>
+                    <button class="btn-delete" onclick="deleteRecord('${roll}')">Delete</button>
+                </td>
+            </tr>`;
+        }
+
+        table += "</table>";
+        resultDiv.innerHTML = table;
+    }
+
+    function fillForm(roll, name, ...subjects) {
+        document.getElementById("roll").value = roll;
+        document.getElementById("name").value = name;
+        document.getElementById("sub1").value = subjects[0] || 0;
+        document.getElementById("sub2").value = subjects[1] || 0;
+        document.getElementById("sub3").value = subjects[2] || 0;
+        document.getElementById("sub4").value = subjects[3] || 0;
+        document.getElementById("sub5").value = subjects[4] || 0;
+        document.getElementById("sub6").value = subjects[4] || 0;
+    }
+</script>
+
+</body>
+</html>
