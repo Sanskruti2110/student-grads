@@ -1,4 +1,4 @@
-# Student Grading System (Flask + DSA Project)
+# Student Grads
 
 This project is a simple web-based grading system built using Flask.  
 It allows users to add, update, delete, and view student records using in-memory storage.
@@ -20,3 +20,4 @@ python app.py
 
 Open in browser:
 http://127.0.0.1:5000/
+
